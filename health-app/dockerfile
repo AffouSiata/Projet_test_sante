@@ -1,0 +1,30 @@
+# Stage 1: Build React app
+FROM node:20 AS react-build
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend ./
+RUN npm run build
+
+# Stage 2: Build NestJS app
+FROM node:20 AS nest-build
+WORKDIR /app/backend
+COPY backend/package*.json ./
+RUN npm install
+COPY backend ./
+# Copier le build React dans le backend
+COPY --from=react-build /app/frontend/dist ./frontend/dist
+# Générer Prisma et compiler NestJS
+RUN npx prisma generate
+RUN npm run build
+
+# Stage 3: Run
+FROM node:20-alpine
+WORKDIR /app
+# Copier les fichiers compilés et node_modules
+COPY --from=nest-build /app/backend/dist ./dist
+COPY --from=nest-build /app/backend/node_modules ./node_modules
+COPY --from=nest-build /app/backend/prisma ./prisma
+COPY --from=react-build /app/frontend/dist ./frontend/dist
+EXPOSE 3001
+CMD ["node", "dist/src/main"]

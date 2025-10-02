@@ -1,0 +1,84 @@
+// Schema pour SQLite (développement local uniquement)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum Role {
+  ADMIN
+  DOCTOR
+  PATIENT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  phone     String?
+  role      String   // SQLite doesn't support enums natively
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  patientProfile Patient?
+  doctorProfile  Doctor?
+}
+
+model Patient {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  dateOfBirth DateTime?
+  address     String?
+  allergies   String?
+  bloodType   String?
+  medicalHistory String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+}
+
+model Doctor {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  specialization String
+  licenseNumber  String   @unique
+  bio            String?
+  yearsOfExperience Int?
+  consultationFee Float?
+  availability   String?    // JSON stored as string in SQLite
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+}
+
+model Appointment {
+  id          String   @id @default(uuid())
+  patientId   String
+  doctorId    String
+  dateTime    DateTime
+  duration    Int      @default(30)
+  reason      String?
+  notes       String?
+  status      String   @default("SCHEDULED")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  // Prevent duplicate appointments at the same time for the same doctor
+  @@unique([doctorId, dateTime])
+}
