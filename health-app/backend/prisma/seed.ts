@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -14,7 +14,7 @@ async function main() {
       password: adminPassword,
       firstName: 'System',
       lastName: 'Admin',
-      role: 'ADMIN',
+      role: Role.ADMIN,
     },
   });
 
@@ -32,7 +32,7 @@ async function main() {
       firstName: 'John',
       lastName: 'Smith',
       phone: '+1234567890',
-      role: 'DOCTOR',
+      role: Role.DOCTOR,
       doctorProfile: {
         create: {
           specialization: 'Cardiologist',
@@ -54,7 +54,7 @@ async function main() {
       firstName: 'Emily',
       lastName: 'Johnson',
       phone: '+1234567891',
-      role: 'DOCTOR',
+      role: Role.DOCTOR,
       doctorProfile: {
         create: {
           specialization: 'Dermatologist',
@@ -80,7 +80,7 @@ async function main() {
       firstName: 'Jane',
       lastName: 'Doe',
       phone: '+1234567892',
-      role: 'PATIENT',
+      role: Role.PATIENT,
       patientProfile: {
         create: {
           dateOfBirth: new Date('1990-05-15'),
